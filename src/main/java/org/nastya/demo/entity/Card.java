@@ -33,8 +33,8 @@ public class Card {
     @Column(nullable = false)
     private BigDecimal balance;
 
-    @ManyToOne
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }
 

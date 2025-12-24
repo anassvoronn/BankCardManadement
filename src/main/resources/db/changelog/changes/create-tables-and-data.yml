@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: initial-change-set
+      author: nastya
+      changes:
+        - sqlFile:
+            path: scripts/postgres_init.sql
+            splitStatements: false
