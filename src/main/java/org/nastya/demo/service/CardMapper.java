@@ -6,6 +6,4 @@ import org.nastya.demo.entity.Card;
 public interface CardMapper {
 
     CardDto toDto(Card card);
-
-    Card toEntity(CardDto dto);
 }

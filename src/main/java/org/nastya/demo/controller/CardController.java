@@ -3,6 +3,7 @@ package org.nastya.demo.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.nastya.demo.dto.CardCreateDto;
 import org.nastya.demo.dto.CardDto;
 import org.nastya.demo.dto.CardStatusDto;
 import org.nastya.demo.dto.TransferDto;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @RestController
@@ -34,13 +36,13 @@ public class CardController {
     }
 
     @PostMapping
-    public CardDto createCard(@Valid @RequestBody CardDto dto) {
+    public CardDto createCard(@Valid @RequestBody CardCreateDto dto) {
         log.info("Creating card for userId={}", dto.userId());
         return cardService.create(dto);
     }
 
     @PutMapping("/{id}")
-    public CardDto updateCard(@PathVariable UUID id, @Valid @RequestBody CardDto dto) {
+    public CardDto updateCard(@PathVariable UUID id, @Valid @RequestBody CardCreateDto dto) {
         log.info("Updating card id={}", id);
         return cardService.update(id, dto);
     }
