@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-version-column-to-cards
+      author: nastya
+      changes:
+        - sqlFile:
+            path: scripts/postgres_version_column_to_cards.sql
+            splitStatements: false
+            stripComments: true

@@ -17,6 +17,10 @@ public class Card {
     @GeneratedValue
     private UUID id;
 
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     @Column(unique = true, nullable = false)
     private String encryptedNumber;
 

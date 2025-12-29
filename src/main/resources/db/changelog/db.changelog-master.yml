@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/changes/create-tables-and-data.yml
+  - include:
+      file: db/changelog/changes/add-card-version.yml
