@@ -4,12 +4,14 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.nastya.demo.dto.CardCreateDto;
 import org.nastya.demo.dto.CardDto;
 import org.nastya.demo.dto.CardStatusDto;
 import org.nastya.demo.dto.TransferDto;
 import org.nastya.demo.entity.Card;
 import org.nastya.demo.enums.CardStatus;
 import org.nastya.demo.repository.CardRepository;
+import org.nastya.demo.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,17 +25,15 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CardService {
     private final CardRepository cardRepository;
+    private final UserRepository userRepository;
     private final CardMapper cardMapper;
+    private final EncryptionService encryptionService;
 
     public CardDto getById(UUID id) {
         log.info("Fetching card by id={}", id);
 
         Card card = cardRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Card not found, id={}", id);
-                    return new EntityNotFoundException("Card not found");
-                });
-
+                .orElseThrow(() -> new EntityNotFoundException("Card not found"));
         return cardMapper.toDto(card);
     }
 
@@ -43,33 +43,32 @@ public class CardService {
                 .map(cardMapper::toDto);
     }
 
-    public CardDto create(CardDto dto) {
-        log.info("Creating new card for userId={}", dto.userId());
-        validateCard(dto);
+    public CardDto create(CardCreateDto dto) {
+        validateCardCreateDto(dto);
 
-        Card card = cardMapper.toEntity(dto);
-        card.setBalance(dto.balance() != null ? dto.balance() : BigDecimal.ZERO);
+        Card card = new Card();
+        card.setEncryptedNumber(encryptionService.encrypt(dto.cardNumber()));
+        card.setOwnerName(dto.ownerName());
+        card.setExpiryDate(dto.expiryDate());
+        card.setStatus(CardStatus.ACTIVE);
+        card.setBalance(BigDecimal.ZERO);
+        card.setUser(userRepository.getReferenceById(dto.userId()));
 
-        Card saved = cardRepository.save(card);
-        log.info("Card created successfully, id={}", saved.getId());
-
-        return cardMapper.toDto(saved);
+        Card savedCard = cardRepository.save(card);
+        return cardMapper.toDto(savedCard);
     }
 
-    public CardDto update(UUID id, CardDto dto) {
-        log.info("Updating card id={}", id);
+    public CardDto update(UUID id, CardCreateDto dto) {
+        validateCardCreateDto(dto);
 
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found"));
 
         card.setOwnerName(dto.ownerName());
         card.setExpiryDate(dto.expiryDate());
-        card.setStatus(dto.status());
 
-        Card updated = cardRepository.save(card);
-        log.info("Card updated successfully, id={}", updated.getId());
-
-        return cardMapper.toDto(updated);
+        Card savedCard = cardRepository.save(card);
+        return cardMapper.toDto(savedCard);
     }
 
     public void delete(UUID id) {
@@ -88,10 +87,7 @@ public class CardService {
         log.info("Requesting balance for cardId={}, userId={}", cardId, userId);
 
         Card card = cardRepository.findByIdAndUserId(cardId, userId)
-                .orElseThrow(() -> {
-                    log.warn("Card not found or access denied. cardId={}, userId={}", cardId, userId);
-                    return new IllegalArgumentException("Card not found or access denied");
-                });
+                .orElseThrow(() -> new IllegalArgumentException("Card not found or access denied"));
 
         if (card.getStatus() != CardStatus.ACTIVE) {
             log.warn("Attempt to view balance of inactive card. cardId={}, status={}", cardId, card.getStatus());
@@ -115,7 +111,12 @@ public class CardService {
         Card to = cardRepository.findByIdAndUserId(dto.toCardId(), dto.userId())
                 .orElseThrow(() -> new EntityNotFoundException("Target card not found"));
 
-        validateTransferCards(from, to, dto.amount());
+        if (from.getStatus() != CardStatus.ACTIVE || to.getStatus() != CardStatus.ACTIVE) {
+            throw new IllegalStateException("One of the cards is not active");
+        }
+        if (from.getBalance().compareTo(dto.amount()) < 0) {
+            throw new IllegalStateException("Insufficient funds");
+        }
 
         from.setBalance(from.getBalance().subtract(dto.amount()));
         to.setBalance(to.getBalance().add(dto.amount()));
@@ -134,9 +135,15 @@ public class CardService {
         log.info("Card status changed successfully: id={}, status={}", card.getId(), cardStatusDto.status());
     }
 
-    private void validateCard(CardDto dto) {
-        if (dto.encryptedNumber() == null || dto.encryptedNumber().isBlank()) {
+    private void validateCardCreateDto(CardCreateDto dto) {
+        if (dto.cardNumber() == null || dto.cardNumber().isBlank()) {
             throw new IllegalArgumentException("Card number must not be empty");
+        }
+        if (!dto.cardNumber().matches("\\d{16}")) {
+            throw new IllegalArgumentException("Card number must be 16 digits");
+        }
+        if (dto.ownerName() == null || dto.ownerName().isBlank()) {
+            throw new IllegalArgumentException("Owner name must not be empty");
         }
         if (dto.userId() == null) {
             throw new IllegalArgumentException("Card must be assigned to a user");
@@ -149,18 +156,6 @@ public class CardService {
         }
         if (dto.fromCardId().equals(dto.toCardId())) {
             throw new IllegalArgumentException("Source and target cards must be different");
-        }
-    }
-
-    private void validateTransferCards(Card from, Card to, BigDecimal amount) {
-        if (from.getStatus() != CardStatus.ACTIVE) {
-            throw new IllegalStateException("Source card is not active");
-        }
-        if (to.getStatus() != CardStatus.ACTIVE) {
-            throw new IllegalStateException("Target card is not active");
-        }
-        if (from.getBalance().compareTo(amount) < 0) {
-            throw new IllegalStateException("Insufficient funds");
         }
     }
 }
