@@ -5,8 +5,8 @@ services:
     restart: always
     environment:
       POSTGRES_DB: BankManager
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: secret
     ports:
       - "5432:5432"
     networks:
@@ -23,6 +23,8 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
     depends_on:
       - postgres
     networks:
@@ -37,8 +39,8 @@ services:
       - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/BankManager
-      SPRING_DATASOURCE_USERNAME: your_user
-      SPRING_DATASOURCE_PASSWORD: your_password
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
     networks:
       - bank-net
 
