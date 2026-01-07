@@ -122,6 +122,7 @@ public class CardService {
                 from.getId(), to.getId(), dto.amount());
     }
 
+    @Transactional
     public void changeCardStatus(CardStatusDto cardStatusDto) {
         log.info("Request to change status of card id={} to {}", cardStatusDto.id(), cardStatusDto.status());
 
