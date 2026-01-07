@@ -48,14 +48,11 @@ class CardServiceTest {
     @Autowired
     private UserRepository userRepository;
 
-    @MockitoSpyBean
+    @Autowired
     private CardRepository cardRepository;
 
     @MockitoSpyBean
     private CardValidator cardValidator;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     private UUID userId;
     private UUID cardFromId;
@@ -142,15 +139,14 @@ class CardServiceTest {
         }).when(cardValidator)
                 .validateCardsAreActive(any(Card.class), any(Card.class));
 
-        Thread transferThread = new Thread(() -> {
-            BigDecimal amount = BigDecimal.valueOf(200);
+        BigDecimal amount = BigDecimal.valueOf(200);
 
-            TransferDto dto = new TransferDto(userId, cardFromId, cardToId, amount);
-            cardService.transferBetweenOwnCards(dto);
-        });
+        TransferDto dto = new TransferDto(userId, cardFromId, cardToId, amount);
 
-        transferThread.start();
-        transferThread.join();
+        assertThrows(
+                ObjectOptimisticLockingFailureException.class,
+                () -> cardService.transferBetweenOwnCards(dto)
+        );
 
         Optional<Card> from = cardRepository.findByIdAndUserId(cardFromId, userId);
         Optional<Card> to = cardRepository.findByIdAndUserId(cardToId, userId);
@@ -187,15 +183,15 @@ class CardServiceTest {
         }).when(cardValidator)
                 .validateCardsAreActive(any(Card.class), any(Card.class));
 
-        Thread transferThread = new Thread(() -> {
-            BigDecimal amount = BigDecimal.valueOf(200);
+        BigDecimal amount = BigDecimal.valueOf(200);
 
-            TransferDto dto = new TransferDto(userId, cardFromId, cardToId, amount);
-            cardService.transferBetweenOwnCards(dto);
-        });
+        TransferDto dto = new TransferDto(userId, cardFromId, cardToId, amount);
 
-        transferThread.start();
-        transferThread.join();
+        assertThrows(
+                ObjectOptimisticLockingFailureException.class,
+                () -> cardService.transferBetweenOwnCards(dto)
+        );
+
 
         Optional<Card> from = cardRepository.findByIdAndUserId(cardFromId, userId);
         Optional<Card> to = cardRepository.findByIdAndUserId(cardToId, userId);
