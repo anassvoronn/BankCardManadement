@@ -15,7 +15,6 @@ import org.nastya.demo.service.validation.CardValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -109,11 +108,13 @@ class CardServiceTest {
 
         cardService.transferBetweenOwnCards(dto);
 
-        Card fromCard = cardRepository.findById(cardFromId).orElseThrow(EntityNotFoundException::new);
-        Card toCard = cardRepository.findById(cardToId).orElseThrow(EntityNotFoundException::new);
+        Card from = cardRepository.findById(cardFromId).orElseThrow(EntityNotFoundException::new);
+        Card to = cardRepository.findById(cardToId).orElseThrow(EntityNotFoundException::new);
 
-        assertThat(fromCard.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(800));
-        assertThat(toCard.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(700));
+        assertThat(from.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(800));
+        assertThat(to.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(700));
+        assertEquals(1L, from.getVersion());
+        assertEquals(1L, to.getVersion());
     }
 
     @Test
@@ -124,10 +125,15 @@ class CardServiceTest {
         assertThatThrownBy(() -> cardService.transferBetweenOwnCards(dto)).
                 isInstanceOf(IllegalStateException.class).
                 hasMessageContaining("Insufficient");
+        Card from = cardRepository.findById(cardFromId).orElseThrow(EntityNotFoundException::new);
+        Card to = cardRepository.findById(cardToId).orElseThrow(EntityNotFoundException::new);
+
+        assertEquals(0L, from.getVersion());
+        assertEquals(0L, to.getVersion());
     }
 
     @Test
-    void transferBetweenOwnCards() throws InterruptedException {
+    void transferBetweenOwnCards() {
         doAnswer(invocation -> {
             Thread blockingCardTread = new Thread(() -> {
                 CardStatusDto cardStatusDto = new CardStatusDto(cardFromId, userId, CardStatus.BLOCKED);
@@ -165,10 +171,12 @@ class CardServiceTest {
         assertEquals(CardStatus.BLOCKED, from.get().getStatus());
         assertEquals(CardStatus.ACTIVE, to.get().getStatus());
 
+        assertEquals(1L, from.get().getVersion());
+        assertEquals(0L, to.get().getVersion());
     }
 
     @Test
-    void twoTransferBetweenOwnCards() throws InterruptedException {
+    void twoTransferBetweenOwnCards() {
         doAnswer(invocation -> {
             Thread transferThread = new Thread(() -> {
                 BigDecimal amount = BigDecimal.valueOf(1000);
@@ -205,10 +213,12 @@ class CardServiceTest {
                 0,
                 to.get().getBalance().compareTo(BigDecimal.valueOf(1500))
         );
+        assertEquals(1L, from.get().getVersion());
+        assertEquals(1L, to.get().getVersion());
     }
 
     @Test
-    void updateAndTransferBetweenOwnCards() throws InterruptedException {
+    void updateAndTransferBetweenOwnCards() {
         doAnswer(invocation -> {
             Thread updateCardThread = new Thread(() -> {
                 CardCreateDto dto = new CardCreateDto(
@@ -246,10 +256,12 @@ class CardServiceTest {
 
         assertEquals("Vika", from.getOwnerName());
         assertEquals(LocalDate.of(2030, 1, 1), from.getExpiryDate());
+        assertEquals(1L, from.getVersion());
+        assertEquals(0L, to.getVersion());
     }
 
     @Test
-    void deleteAndTransferBetweenOwnCards() throws InterruptedException {
+    void deleteAndTransferBetweenOwnCards() {
         doAnswer(invocation -> {
             Thread deleteCardThread = new Thread(() -> cardService.delete(cardFromId));
             deleteCardThread.start();
@@ -269,5 +281,6 @@ class CardServiceTest {
         assertTrue(from.isEmpty(), "Source card should be deleted");
 
         assertEquals(0, to.get().getBalance().compareTo(toBalanceBefore), "Target card balance should remain unchanged");
+        assertEquals(0L, to.get().getVersion());
     }
 }
