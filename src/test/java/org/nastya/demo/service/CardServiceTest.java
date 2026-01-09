@@ -35,6 +35,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @SpringBootTest
 @Testcontainers
@@ -177,17 +178,26 @@ class CardServiceTest {
 
     @Test
     void twoTransferBetweenOwnCards() {
+        AtomicBoolean callingValidator = new AtomicBoolean(false);
+
         doAnswer(invocation -> {
-            Thread transferThread = new Thread(() -> {
-                BigDecimal amount = BigDecimal.valueOf(1000);
 
-                TransferDto dto = new TransferDto(userId, cardFromId, cardToId, amount);
-                cardService.transferBetweenOwnCards(dto);
-            });
+            if (callingValidator.compareAndSet(false, true)) {
 
-            transferThread.start();
-            transferThread.join();
+                Thread transferThread = new Thread(() -> {
+                    BigDecimal amount = BigDecimal.valueOf(1000);
+                    TransferDto dto =
+                            new TransferDto(userId, cardFromId, cardToId, amount);
+
+                    cardService.transferBetweenOwnCards(dto);
+                });
+
+                transferThread.start();
+                transferThread.join();
+            }
+
             return invocation.callRealMethod();
+
         }).when(cardValidator)
                 .validateCardsAreActive(any(Card.class), any(Card.class));
 
@@ -199,7 +209,6 @@ class CardServiceTest {
                 ObjectOptimisticLockingFailureException.class,
                 () -> cardService.transferBetweenOwnCards(dto)
         );
-
 
         Optional<Card> from = cardRepository.findByIdAndUserId(cardFromId, userId);
         Optional<Card> to = cardRepository.findByIdAndUserId(cardToId, userId);
