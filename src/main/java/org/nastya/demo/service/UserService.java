@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.nastya.demo.dto.UserDto;
 import org.nastya.demo.entity.User;
 import org.nastya.demo.repository.UserRepository;
+import org.nastya.demo.service.validation.UserValidator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final UserValidator userValidator;
 
     public UserDto getById(UUID id) {
         log.info("Fetching user by id={}", id);
@@ -40,8 +42,7 @@ public class UserService {
 
     public UUID create(UserDto dto) {
         log.info("Creating user with username={}", dto.username());
-
-        validateUser(dto);
+        userValidator.validateForCreate(dto);
 
         if (userRepository.existsByUsername(dto.username())) {
             log.warn("Username already exists: {}", dto.username());
@@ -57,8 +58,7 @@ public class UserService {
 
     public UserDto update(UUID id, UserDto dto) {
         log.info("Updating user id={}", id);
-
-        validateUser(dto);
+        userValidator.validateForUpdate(id, dto);
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> {
@@ -91,14 +91,5 @@ public class UserService {
 
         userRepository.deleteById(id);
         log.info("User deleted successfully, id={}", id);
-    }
-
-    private void validateUser(UserDto dto) {
-        if (dto.username() == null || dto.username().isBlank()) {
-            throw new IllegalArgumentException("Username must not be empty");
-        }
-        if (dto.role() == null) {
-            throw new IllegalArgumentException("User role must be specified");
-        }
     }
 }
