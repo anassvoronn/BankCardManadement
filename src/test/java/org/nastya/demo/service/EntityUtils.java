@@ -10,6 +10,7 @@ import java.time.LocalDate;
 
 public class EntityUtils {
 
+    public static final String PASSWORD = "12345";
 
     public static Card createCard(
             User user,
@@ -30,10 +31,9 @@ public class EntityUtils {
     public static User createUser(String username) {
         User user = new User();
         user.setUsername(username);
-        user.setPassword("password"); // для тестов
+        user.setPassword(PASSWORD);
         user.setRole(Role.USER);
 
         return user;
     }
-
 }

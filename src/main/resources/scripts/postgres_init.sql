@@ -17,17 +17,18 @@ CREATE TABLE cards (
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
+-- $2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2 = 12345
 INSERT INTO users (username, password, role) VALUES
-('user1', 'password1', 'ADMIN'),
-('user2', 'password2', 'ADMIN'),
-('user3', 'password3', 'USER'),
-('user4', 'password4', 'USER'),
-('user5', 'password5', 'USER'),
-('user6', 'password6', 'USER'),
-('user7', 'password7', 'USER'),
-('user8', 'password8', 'USER'),
-('user9', 'password9', 'USER'),
-('user10', 'password10', 'USER');
+('user1', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'ADMIN'),
+('user2', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'ADMIN'),
+('user3', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
+('user4', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
+('user5', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
+('user6', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
+('user7', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
+('user8', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
+('user9', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
+('user10', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER');
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
