@@ -28,7 +28,8 @@ INSERT INTO users (username, password, role) VALUES
 ('user7', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
 ('user8', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
 ('user9', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
-('user10', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER');
+('user10', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER'),
+('user11', '$2a$10$SvkUwuQrVZ0y4vJYLUxaCuVgYWd0osh9VID33D9FgbB24tBiTDVl2', 'USER');
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
