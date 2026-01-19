@@ -84,7 +84,7 @@ class UserControllerTest {
     @Test
     void updateUser_withAdminToken_returnsUpdatedUser() throws Exception {
         String token = loginAndGetAdminToken();
-        UUID userId = userRepository.getUserIdByUsername("user3");
+        UUID userId = userRepository.getUserIdByUsername("user5");
 
         mockMvc.perform(put("/users/" + userId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -101,13 +101,16 @@ class UserControllerTest {
     }
 
     @Test
-    void deleteUser_withAdminToken_returnsOk() throws Exception {
+    void deleteUser_withAdminToken_returnsServerError() throws Exception {
         String token = loginAndGetAdminToken();
         UUID userId = userRepository.getUserIdByUsername("user4");
 
         mockMvc.perform(delete("/users/" + userId)
                         .header(HttpHeaders.AUTHORIZATION, getAuthHeader(token)))
-                .andExpect(status().isOk());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("USER_HAS_CARDS"))
+                .andExpect(jsonPath("$.message")
+                        .value("User has active cards and cannot be deleted"));
     }
 
     @Test
