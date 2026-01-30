@@ -24,15 +24,27 @@ public class CardController {
     private final CardService cardService;
 
     @GetMapping
-    public Page<CardDto> getAllCards(Pageable pageable) {
-        log.info("Fetching all cards");
+    public Page<CardDto> getAll(Pageable pageable) {
+        log.info("fetching all cards");
         return cardService.getAll(pageable);
     }
 
     @GetMapping("/{id}")
-    public CardDto getCardById(@PathVariable UUID id) {
-        log.info("Fetching card by id={}", id);
+    public CardDto getById(@PathVariable UUID id) {
+        log.info("fetching card by id={}", id);
         return cardService.getById(id);
+    }
+
+    @GetMapping("/private")
+    public Page<CardDto> getAllOfCurrentUser(Pageable pageable) {
+        log.info("fetching own cards");
+        return cardService.getAllOfCurrentUser(pageable);
+    }
+
+    @GetMapping("/private/{id}")
+    public CardDto getByIdOfCurrentUser(@PathVariable UUID id) {
+        log.info("fetching own card by id={}", id);
+        return cardService.getByIdOfCurrentUser(id);
     }
 
     @PostMapping
@@ -62,5 +74,15 @@ public class CardController {
     @PutMapping("/{id}/status")
     public void changeCardStatus(@PathVariable UUID id, @RequestParam CardStatus status) {
         cardService.changeCardStatus(id, status);
+    }
+
+    @PutMapping("/private/{id}/block")
+    public void blockCardOfCurrentUser(@PathVariable UUID id) {
+        cardService.blockCardOfCurrentUser(id);
+    }
+
+    @GetMapping("/private/{id}/balance")
+    public BigDecimal getCardBalanceOfCurrentUser(@PathVariable UUID id) {
+        return cardService.getCardBalanceOfCurrentUser(id);
     }
 }
