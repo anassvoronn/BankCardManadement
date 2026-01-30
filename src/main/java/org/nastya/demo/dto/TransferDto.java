@@ -6,8 +6,7 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record TransferDto(@NotNull UUID userId,
-                          @NotNull UUID fromCardId,
+public record TransferDto(@NotNull UUID fromCardId,
                           @NotNull UUID toCardId,
                           @NotNull @Positive BigDecimal amount) {
 

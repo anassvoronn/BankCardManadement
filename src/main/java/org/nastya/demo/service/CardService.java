@@ -6,9 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.nastya.demo.dto.CardCreateDto;
 import org.nastya.demo.dto.CardDto;
-import org.nastya.demo.dto.CardStatusDto;
 import org.nastya.demo.dto.TransferDto;
 import org.nastya.demo.entity.Card;
+import org.nastya.demo.entity.User;
 import org.nastya.demo.enums.CardStatus;
 import org.nastya.demo.repository.CardRepository;
 import org.nastya.demo.repository.UserRepository;
@@ -30,17 +30,22 @@ public class CardService {
     private final CardMapper cardMapper;
     private final EncryptionService encryptionService;
     private final CardValidator cardValidator;
+    private final CustomUserDetailsService customUserDetailsService;
 
+    @Transactional(readOnly = true)
     public CardDto getById(UUID id) {
-        log.info("Fetching card by id={}", id);
+        log.info("fetching card by id={}", id);
 
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found"));
+
         return cardMapper.toDto(card);
     }
 
+    @Transactional(readOnly = true)
     public Page<CardDto> getAll(Pageable pageable) {
-        log.info("Fetching all cards");
+        log.info("fetching all cards");
+
         return cardRepository.findAll(pageable)
                 .map(cardMapper::toDto);
     }
@@ -85,31 +90,18 @@ public class CardService {
         log.info("Card deleted successfully, id={}", id);
     }
 
-    public BigDecimal getCardBalance(UUID cardId, UUID userId) {
-        log.info("Requesting balance for cardId={}, userId={}", cardId, userId);
-
-        Card card = cardRepository.findByIdAndUserId(cardId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Card not found or access denied"));
-
-        if (card.getStatus() != CardStatus.ACTIVE) {
-            log.warn("Attempt to view balance of inactive card. cardId={}, status={}", cardId, card.getStatus());
-            throw new IllegalStateException("Card is not active");
-        }
-
-        log.debug("Balance retrieved successfully for cardId={}", cardId);
-        return card.getBalance();
-    }
-
     @Transactional
     public void transferBetweenOwnCards(TransferDto dto) {
+        User user = customUserDetailsService.getCurrentUser();
         log.info("Transfer requested: userId={}, fromCard={}, toCard={}, amount={}",
-                dto.userId(), dto.fromCardId(), dto.toCardId(), dto.amount());
+                user.getId(), dto.fromCardId(), dto.toCardId(), dto.amount());
+
         cardValidator.validateTransfer(dto);
 
-        Card from = cardRepository.findByIdAndUserId(dto.fromCardId(), dto.userId())
+        Card from = cardRepository.findByIdAndUserId(dto.fromCardId(), user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Source card not found"));
 
-        Card to = cardRepository.findByIdAndUserId(dto.toCardId(), dto.userId())
+        Card to = cardRepository.findByIdAndUserId(dto.toCardId(), user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Target card not found"));
 
         cardValidator.validateCardsAreActive(from, to);
@@ -117,19 +109,37 @@ public class CardService {
 
         from.setBalance(from.getBalance().subtract(dto.amount()));
         to.setBalance(to.getBalance().add(dto.amount()));
-
-        log.info("Transfer completed successfully: fromCard={}, toCard={}, amount={}",
-                from.getId(), to.getId(), dto.amount());
     }
 
     @Transactional
-    public void changeCardStatus(CardStatusDto cardStatusDto) {
-        log.info("Request to change status of card id={} to {}", cardStatusDto.id(), cardStatusDto.status());
+    public void changeCardStatus(UUID id, CardStatus status) {
+        log.info("changing card status: cardId={}, status={}", id, status);
 
-        Card card = cardRepository.findByIdAndUserId(cardStatusDto.id(), cardStatusDto.userId())
+        Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found"));
 
-        card.setStatus(cardStatusDto.status());
-        log.info("Card status changed successfully: id={}, status={}", card.getId(), cardStatusDto.status());
+        card.setStatus(status);
+
+        log.info("Card status changed by ADMIN: id={}, status={}", card.getId(), status);
+    }
+
+
+    @Transactional
+    public void blockCardOfCurrentUser(UUID cardId) {
+        User user = customUserDetailsService.getCurrentUser();
+        log.info("blocking card: userId={}, cardId={}", user.getId(), cardId);
+
+        Card card = cardRepository.findByIdAndUserId(cardId, user.getId())
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Card not found or access denied"));
+
+        if (card.getStatus() == CardStatus.BLOCKED) {
+            log.warn("Card already blocked: cardId={}", cardId);
+            return;
+        }
+
+        card.setStatus(CardStatus.BLOCKED);
+
+        log.info("Card blocked successfully: cardId={}", cardId);
     }
 }
