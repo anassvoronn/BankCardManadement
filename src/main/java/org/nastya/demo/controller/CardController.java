@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.nastya.demo.dto.CardCreateDto;
 import org.nastya.demo.dto.CardDto;
-import org.nastya.demo.dto.CardStatusDto;
 import org.nastya.demo.dto.TransferDto;
+import org.nastya.demo.enums.CardStatus;
 import org.nastya.demo.service.CardService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,7 +60,7 @@ public class CardController {
     }
 
     @PutMapping("/{id}/status")
-    public void changeCardStatus(@Valid @RequestBody CardStatusDto cardStatusDto) {
-        cardService.changeCardStatus(cardStatusDto);
+    public void changeCardStatus(@PathVariable UUID id, @RequestParam CardStatus status) {
+        cardService.changeCardStatus(id, status);
     }
 }
