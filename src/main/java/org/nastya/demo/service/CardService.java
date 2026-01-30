@@ -50,6 +50,27 @@ public class CardService {
                 .map(cardMapper::toDto);
     }
 
+    @Transactional(readOnly = true)
+    public CardDto getByIdOfCurrentUser(UUID id) {
+        User currentUser = customUserDetailsService.getCurrentUser();
+        log.info("fetching card by id={}, userId={}", id, currentUser.getId());
+
+        Card card = cardRepository.findByIdAndUserId(id, currentUser.getId())
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Card not found or access denied"));
+
+        return cardMapper.toDto(card);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CardDto> getAllOfCurrentUser(Pageable pageable) {
+        User currentUser = customUserDetailsService.getCurrentUser();
+        log.info("fetching cards for userId={}", currentUser.getId());
+
+        return cardRepository.findAllByUserId(currentUser.getId(), pageable)
+                .map(cardMapper::toDto);
+    }
+
     public CardDto create(CardCreateDto dto) {
         cardValidator.validateCreate(dto);
 
@@ -88,6 +109,25 @@ public class CardService {
 
         cardRepository.deleteById(id);
         log.info("Card deleted successfully, id={}", id);
+    }
+
+    public BigDecimal getCardBalanceOfCurrentUser(UUID cardId) {
+        User user = customUserDetailsService.getCurrentUser();
+
+        log.info("Requesting balance for cardId={}, userId={}", cardId, user.getId());
+
+        Card card = cardRepository.findByIdAndUserId(cardId, user.getId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Card not found or access denied"));
+
+        if (card.getStatus() != CardStatus.ACTIVE) {
+            log.warn("Attempt to view balance of inactive card. cardId={}, status={}",
+                    cardId, card.getStatus());
+            throw new IllegalStateException("Card is not active");
+        }
+
+        log.debug("Balance retrieved successfully for cardId={}", cardId);
+        return card.getBalance();
     }
 
     @Transactional

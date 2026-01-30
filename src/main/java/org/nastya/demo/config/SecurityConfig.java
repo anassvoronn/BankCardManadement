@@ -26,8 +26,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/cards/private/**").hasRole(Role.USER.name())
+                        .requestMatchers("/cards/transfer").hasRole(Role.USER.name())
                         .requestMatchers("/users/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers("/cards/**").authenticated()
+                        .requestMatchers("/cards/**").hasRole(Role.ADMIN.name())
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -39,7 +42,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http, CustomUserDetailsService customUserDetailsService,
-    PasswordEncoder passwordEncoder) throws Exception {
+                                                       PasswordEncoder passwordEncoder) throws Exception {
         AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
 
         authBuilder
