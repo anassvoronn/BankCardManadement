@@ -12,8 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.nastya.demo.dto.CardCreateDto;
 import org.nastya.demo.dto.CardDto;
 import org.nastya.demo.dto.TransferDto;
+import org.nastya.demo.entity.User;
 import org.nastya.demo.enums.CardStatus;
 import org.nastya.demo.service.CardService;
+import org.nastya.demo.service.CustomUserDetailsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,6 +40,7 @@ import java.util.UUID;
 public class CardController {
 
     private final CardService cardService;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Operation(summary = "Получить все карты")
     @ApiResponse(responseCode = "200", description = "Список карт успешно получен")
@@ -65,7 +68,8 @@ public class CardController {
     @GetMapping("/private")
     public Page<CardDto> getAllOfCurrentUser(Pageable pageable) {
         log.info("fetching own cards");
-        return cardService.getAllOfCurrentUser(pageable);
+        User currentUser = customUserDetailsService.getCurrentUser();
+        return cardService.getAllOfCurrentUser(currentUser.getId(), pageable);
     }
 
     @Operation(summary = "Получить карту текущего пользователя по ID")
@@ -99,7 +103,8 @@ public class CardController {
     public void blockCardOfCurrentUser(
             @Parameter(description = "ID карты") @PathVariable UUID id
     ) {
-        cardService.blockCardOfCurrentUser(id);
+        User user = customUserDetailsService.getCurrentUser();
+        cardService.blockCardOfCurrentUser(user.getId(), id);
     }
 
     @Operation(summary = "Получить баланс карты текущего пользователя")

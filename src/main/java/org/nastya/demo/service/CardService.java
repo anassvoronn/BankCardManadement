@@ -63,14 +63,14 @@ public class CardService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CardDto> getAllOfCurrentUser(Pageable pageable) {
-        User currentUser = customUserDetailsService.getCurrentUser();
-        log.info("fetching cards for userId={}", currentUser.getId());
+    public Page<CardDto> getAllOfCurrentUser(UUID userId, Pageable pageable) {
+        log.info("fetching cards for userId={}", userId);
 
-        return cardRepository.findAllByUserId(currentUser.getId(), pageable)
+        return cardRepository.findAllByUserId(userId, pageable)
                 .map(cardMapper::toDto);
     }
 
+    @Transactional
     public CardDto create(CardCreateDto dto) {
         cardValidator.validateCreate(dto);
 
@@ -95,10 +95,15 @@ public class CardService {
 
         card.setOwnerName(dto.ownerName());
         card.setExpiryDate(dto.expiryDate());
+        User user = userRepository.findById(dto.userId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        card.setUser(user);
+        card.setEncryptedNumber(encryptionService.encrypt(dto.cardNumber()));
 
         return cardMapper.toDto(card);
     }
 
+    @Transactional
     public void delete(UUID id) {
         log.info("Deleting card id={}", id);
 
@@ -111,6 +116,7 @@ public class CardService {
         log.info("Card deleted successfully, id={}", id);
     }
 
+    @Transactional(readOnly = true)
     public BigDecimal getCardBalanceOfCurrentUser(UUID cardId) {
         User user = customUserDetailsService.getCurrentUser();
 
@@ -164,11 +170,10 @@ public class CardService {
     }
 
     @Transactional
-    public void blockCardOfCurrentUser(UUID cardId) {
-        User user = customUserDetailsService.getCurrentUser();
-        log.info("blocking card: userId={}, cardId={}", user.getId(), cardId);
+    public void blockCardOfCurrentUser(UUID userId, UUID cardId) {
+        log.info("blocking card: userId={}, cardId={}", userId, cardId);
 
-        Card card = cardRepository.findByIdAndUserId(cardId, user.getId())
+        Card card = cardRepository.findByIdAndUserId(cardId, userId)
                 .orElseThrow(() ->
                         new EntityNotFoundException("Card not found or access denied"));
 

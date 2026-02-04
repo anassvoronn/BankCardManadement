@@ -17,6 +17,8 @@ public interface CardRepository extends JpaRepository<Card, UUID>, JpaSpecificat
     Optional<Card> findByIdAndUserId(UUID cardId, UUID userId);
 
     List<Card> findByUserUsername(String username);
+    
+    Optional<Card> findByEncryptedNumber(String encryptedNumber);
 
     Page<Card> findAllByUserId(UUID userId, Pageable pageable);
 }
