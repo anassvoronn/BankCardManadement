@@ -11,9 +11,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.nastya.demo.dto.UserDto;
 import org.nastya.demo.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -29,9 +30,9 @@ public class UserController {
     @Operation(summary = "Получить всех пользователей")
     @ApiResponse(responseCode = "200", description = "Список пользователей получен")
     @GetMapping
-    public List<UserDto> getAllUsers() {
+    public Page<UserDto> getAllUsers(Pageable pageable) {
         log.info("Fetching all users");
-        return userService.getAll();
+        return userService.getAll(pageable);
     }
 
     @Operation(summary = "Получить пользователя по ID")

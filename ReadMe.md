@@ -22,4 +22,17 @@
 
 3. **Open Swagger UI:**
 
-   http://localhost:8080/api/swagger-ui/index.html
+   http://localhost:8080/swagger-ui/index.html
+
+4. **Authorization instructions**
+   1. Go to the AuthController
+   2. Execute the login request
+      Use user1–user2 if you need an ADMIN
+      Use user3–user11 if you need a USER
+   3. You will receive a JWT token in the response
+   4. Scroll the Swagger page all the way to the top
+   5. Click the Authorize button on the right
+   6. Paste the token into the field without Bearer — it will be added automatically
+   7. Click the Authorize button
+   
+   After that, all secured endpoints will be available within the current session.
