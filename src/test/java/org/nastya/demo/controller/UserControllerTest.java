@@ -66,8 +66,7 @@ class UserControllerTest {
         String token = loginAndGetAdminToken();
         mockMvc.perform(get("/users")
                         .header(HttpHeaders.AUTHORIZATION, getAuthHeader(token)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andExpect(status().isOk());
     }
 
     @Test

@@ -10,6 +10,7 @@ import org.nastya.demo.service.validation.UserValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -21,6 +22,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final UserValidator userValidator;
 
+    @Transactional(readOnly = true)
     public UserDto getById(UUID id) {
         log.info("Fetching user by id={}", id);
 
@@ -32,6 +34,7 @@ public class UserService {
                 });
     }
 
+    @Transactional(readOnly = true)
     public Page<UserDto> getAll(Pageable pageable) {
         log.info("Fetching all users");
 
@@ -39,6 +42,7 @@ public class UserService {
                 .map(userMapper::toDto);
     }
 
+    @Transactional
     public UUID create(UserDto dto) {
         log.info("Creating user with username={}", dto.username());
         userValidator.validateForCreate(dto);
@@ -55,6 +59,7 @@ public class UserService {
         return saved.getId();
     }
 
+    @Transactional
     public UserDto update(UUID id, UserDto dto) {
         log.info("Updating user id={}", id);
         userValidator.validateForUpdate(id, dto);
@@ -79,6 +84,7 @@ public class UserService {
         return userMapper.toDto(user);
     }
 
+    @Transactional
     public void delete(UUID id) {
         log.info("Deleting user id={}", id);
 
