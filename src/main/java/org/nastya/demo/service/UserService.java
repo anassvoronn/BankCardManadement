@@ -7,9 +7,10 @@ import org.nastya.demo.dto.UserDto;
 import org.nastya.demo.entity.User;
 import org.nastya.demo.repository.UserRepository;
 import org.nastya.demo.service.validation.UserValidator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -31,13 +32,11 @@ public class UserService {
                 });
     }
 
-    public List<UserDto> getAll() {
+    public Page<UserDto> getAll(Pageable pageable) {
         log.info("Fetching all users");
 
-        return userRepository.findAll()
-                .stream()
-                .map(userMapper::toDto)
-                .toList();
+        return userRepository.findAll(pageable)
+                .map(userMapper::toDto);
     }
 
     public UUID create(UserDto dto) {
@@ -76,9 +75,8 @@ public class UserService {
         user.setPassword(dto.password());
         user.setRole(dto.role());
 
-        User updatedUser = userRepository.save(user);
         log.info("User updated successfully, id={}", id);
-        return userMapper.toDto(updatedUser);
+        return userMapper.toDto(user);
     }
 
     public void delete(UUID id) {

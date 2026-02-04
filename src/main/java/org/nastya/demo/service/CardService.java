@@ -86,6 +86,7 @@ public class CardService {
         return cardMapper.toDto(savedCard);
     }
 
+    @Transactional
     public CardDto update(UUID id, CardCreateDto dto) {
         cardValidator.validateCreate(dto);
 
@@ -95,8 +96,7 @@ public class CardService {
         card.setOwnerName(dto.ownerName());
         card.setExpiryDate(dto.expiryDate());
 
-        Card savedCard = cardRepository.save(card);
-        return cardMapper.toDto(savedCard);
+        return cardMapper.toDto(card);
     }
 
     public void delete(UUID id) {
@@ -162,7 +162,6 @@ public class CardService {
 
         log.info("Card status changed by ADMIN: id={}, status={}", card.getId(), status);
     }
-
 
     @Transactional
     public void blockCardOfCurrentUser(UUID cardId) {
