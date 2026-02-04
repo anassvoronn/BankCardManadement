@@ -51,5 +51,18 @@
    5. Click the **Authorize** button on the right
    6. Paste the token into the field **without `Bearer`** — it will be added automatically
    7. Click the **Authorize** button
-   
+   8. After obtaining the token, you can execute secured requests.  
+      **Example (create a card as ADMIN):**
+      ```bash
+      curl -X POST "http://localhost:8080/cards" \
+        -H "Authorization: Bearer <ADMIN_JWT_TOKEN>" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "cardNumber": "1111222233334444",
+          "ownerName": "user3",
+          "expiryDate": "2030-01-01",
+          "userId": "<USER_ID>"
+        }'
+      ``` 
+      
    After that, all secured endpoints will be available within the current session.
