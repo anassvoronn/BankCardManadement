@@ -352,7 +352,7 @@ class CardControllerTest {
         String token = loginAndGetUser3Token();
 
         List<Card> cards = cardRepository.findByUserUsername("user3");
-        mockMvc.perform(put("/cards/transfer")
+        mockMvc.perform(put("/cards/private/transfer")
                         .header(HttpHeaders.AUTHORIZATION, getAuthHeader(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -370,7 +370,7 @@ class CardControllerTest {
         String token = loginAndGetAdminToken();
 
         List<Card> cards = cardRepository.findByUserUsername("user3");
-        mockMvc.perform(put("/cards/transfer")
+        mockMvc.perform(put("/cards/private/transfer")
                         .header(HttpHeaders.AUTHORIZATION, getAuthHeader(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -385,14 +385,14 @@ class CardControllerTest {
 
     @Test
     void transferBetweenOwnCards_noToken403() throws Exception {
-        mockMvc.perform(put("/cards/transfer"))
+        mockMvc.perform(put("/cards/private/transfer"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void transferBetweenOwnCards_invalidToken403() {
         assertThrows(SignatureException.class, () ->
-                mockMvc.perform(put("/cards/transfer")
+                mockMvc.perform(put("/cards/private/transfer")
                         .header(HttpHeaders.AUTHORIZATION, getAuthHeader(INVALID_TOKEN)))
         );
     }

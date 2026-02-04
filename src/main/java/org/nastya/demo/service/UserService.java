@@ -76,9 +76,8 @@ public class UserService {
         user.setPassword(dto.password());
         user.setRole(dto.role());
 
-        User updatedUser = userRepository.save(user);
         log.info("User updated successfully, id={}", id);
-        return userMapper.toDto(updatedUser);
+        return userMapper.toDto(user);
     }
 
     public void delete(UUID id) {

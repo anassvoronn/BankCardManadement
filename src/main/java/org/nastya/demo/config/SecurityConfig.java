@@ -25,11 +25,14 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/cards/private/**").hasRole(Role.USER.name())
-                        .requestMatchers("/cards/transfer").hasRole(Role.USER.name())
-                        .requestMatchers("/users/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers("/cards/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers("/**").hasRole(Role.ADMIN.name())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
