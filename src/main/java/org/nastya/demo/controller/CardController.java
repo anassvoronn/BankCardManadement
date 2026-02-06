@@ -16,6 +16,7 @@ import org.nastya.demo.entity.User;
 import org.nastya.demo.enums.CardStatus;
 import org.nastya.demo.service.CardService;
 import org.nastya.demo.service.CustomUserDetailsService;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,7 +46,7 @@ public class CardController {
     @Operation(summary = "Получить все карты")
     @ApiResponse(responseCode = "200", description = "Список карт успешно получен")
     @GetMapping
-    public Page<CardDto> getAll(Pageable pageable) {
+    public Page<CardDto> getAll(@ParameterObject Pageable pageable) {
         log.info("fetching all cards");
         return cardService.getAll(pageable);
     }
@@ -66,7 +67,7 @@ public class CardController {
     @Operation(summary = "Получить все карты текущего пользователя")
     @ApiResponse(responseCode = "200", description = "Карты пользователя успешно получены")
     @GetMapping("/private")
-    public Page<CardDto> getAllOfCurrentUser(Pageable pageable) {
+    public Page<CardDto> getAllOfCurrentUser(@ParameterObject Pageable pageable) {
         log.info("fetching own cards");
         User currentUser = customUserDetailsService.getCurrentUser();
         return cardService.getAllOfCurrentUser(currentUser.getId(), pageable);

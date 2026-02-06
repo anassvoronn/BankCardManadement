@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.nastya.demo.dto.UserDto;
 import org.nastya.demo.service.UserService;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class UserController {
     @Operation(summary = "Получить всех пользователей")
     @ApiResponse(responseCode = "200", description = "Список пользователей получен")
     @GetMapping
-    public Page<UserDto> getAllUsers(Pageable pageable) {
+    public Page<UserDto> getAllUsers(@ParameterObject Pageable pageable) {
         log.info("Fetching all users");
         return userService.getAll(pageable);
     }
