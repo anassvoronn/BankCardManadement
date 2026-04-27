@@ -94,7 +94,7 @@ class CardServiceTest {
 
         assertThat(from.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(800));
         assertThat(to.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(1400));
-        assertEquals(1L, from.getVersion());
+        assertEquals(2L, from.getVersion());
         assertEquals(1L, to.getVersion());
     }
 
